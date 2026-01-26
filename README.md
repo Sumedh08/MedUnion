@@ -8,7 +8,7 @@
 
 ## 🚀 The Problem
 Public health infrastructure operates in silos.
-- **Vaccine Cold Chains** don't talk to **Ambulance Fleets**.
+- **Vaccine Cold Chains** don't talk to **Hospitals**.
 - **Blood Banks** are disconnected from **Surgical Demand**.
 - **Medicine Warehouses** lack real-time visibility into **Hospital Consumption**.
 
@@ -28,9 +28,8 @@ MedUnion is a **Unified Healthcare Interface (UHI)** that acts as a central inte
     *   Automated redistribution logic (moving stock from surplus to deficit centers).
     *   *Impact:* Zero "stock-out" events for life-saving drugs.
 
-3.  **Blood & Organ Transport 🩸**
-    *   Live tracking of time-sensitive biological transport.
-    *   Route optimization based on traffic and urgency.
+3.  **Blood & Organ 🩸**
+    *   Live tracking of time-sensitive biological need.
     *   *Impact:* Faster delivery of organs for transplant.
 
 4.  **Ambulance Readiness 🚑**
@@ -40,8 +39,8 @@ MedUnion is a **Unified Healthcare Interface (UHI)** that acts as a central inte
 
 ## 📸 Screenshots
 
-### Live Health Grid (Tamil Nadu Pilot)
-Real-time monitoring of RGGGH, Stanley Medical College, and other critical nodes.
+### Live Health Grid (Tamil Nadu Example)
+Real-time monitoring of critical nodes.
 ![Dashboard](docs/images/dashboard.png)
 
 ### Vaccine Cold-Chain Monitoring
