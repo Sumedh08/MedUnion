@@ -1,86 +1,116 @@
 # MedUnion 🏥
 
-**The missing AI layer for public health.**
+**Unified Healthcare Intelligence Platform**
 
-> "A unified AI layer connecting hospitals & cold chains. Predicts vaccine/drug spoilage, blood/organ delays & ambulance gaps before they cost lives."
+A production-grade platform that ingests real data from public **FHIR** (HAPI R5) and **DHIS2** (Sierra Leone) servers into a canonical PostgreSQL database, powering hospital operations, community health dashboards, AI analytics, and a knowledge graph.
 
-![MedUnion Dashboard](docs/images/dashboard.png)
-
-## 🚀 The Problem
-Public health infrastructure operates in silos.
-- **Vaccine Cold Chains** don't talk to **Hospitals**.
-- **Blood Banks** are disconnected from **Surgical Demand**.
-- **Medicine Warehouses** lack real-time visibility into **Hospital Consumption**.
-
-This fragmentation leads to **preventable loss of life** due to stockouts, spoilage, and logistic delays.
-
-## 💡 The Solution: MedUnion
-MedUnion is a **Unified Healthcare Interface (UHI)** that acts as a central intelligence layer for state health departments. It integrates fragmented data streams into a single, proactive decision-making grid.
-
-### Key Modules
-1.  **Vaccine Cold-Chain ❄️**
-    *   Real-time IoT monitoring of freezer temperatures.
-    *   AI prediction of spoilage risk (Red/Amber/Green).
-    *   *Impact:* Prevents wastage of high-value vaccines.
-
-2.  **Essential Medicines 💊**
-    *   Predictive inventory management for critical drugs.
-    *   Automated redistribution logic (moving stock from surplus to deficit centers).
-    *   *Impact:* Zero "stock-out" events for life-saving drugs.
-
-3.  **Blood & Organ 🩸**
-    *   Live tracking of time-sensitive biological need.
-    *   *Impact:* Faster delivery of organs for transplant.
-
-4.  **Ambulance Readiness 🚑**
-    *   Predictive fleet positioning based on historical accident data.
-    *   Real-time coverage gap analysis.
-    *   *Impact:* Reduced response times during golden hour.
-
-## 📸 Screenshots
-
-### Live Health Grid (Tamil Nadu Example)
-Real-time monitoring of critical nodes.
 ![Dashboard](docs/images/dashboard.png)
 
-### Vaccine Cold-Chain Monitoring
-Detailed drill-down into specific freezer units and temperature logs.
-![Vaccines](docs/images/vaccines.png)
+## Architecture
 
-## 🛠️ Tech Stack
-- **Frontend:** React 19, Vite, TailwindCSS, Leaflet Maps
-- **Backend:** Python FastAPI, AI/ML Intelligence Engine
-- **Data:** Synthetic generators modeled on real Tamil Nadu health infrastructure (TNMSC, 108 GVK EMRI).
+```
+┌─────────────┐    ┌──────────────┐    ┌────────────────┐
+│  HAPI FHIR  │───▶│   ETL        │───▶│  PostgreSQL    │
+│  (R5)       │    │   Pipeline   │    │  (Canonical)   │
+├─────────────┤    │              │    ├────────────────┤
+│  DHIS2      │───▶│  Extract →   │───▶│  Hospital      │
+│  (2.40)     │    │  Map →       │    │  + Community   │
+├─────────────┤    │  Validate →  │    │  Tables        │
+│  Seed SQL   │───▶│  Load        │    └────────────────┘
+└─────────────┘    └──────────────┘           │
+                                              ▼
+                                      ┌────────────────┐
+                                      │  FastAPI        │
+                                      │  (REST + AI)    │
+                                      ├────────────────┤
+                                      │  React + Tailwind │
+                                      └────────────────┘
+```
 
-## 🏃‍♂️ Getting Started
+## Features
+
+- **Hospital Intelligence** — Beds, admissions, staff, equipment, medicine inventory from FHIR
+- **Community Health** — Districts, facilities, indicators, vaccination programs from DHIS2
+- **AI Health Copilot** — LLM-powered query interface via OpenRouter
+- **Knowledge Graph** — Relationship map of all healthcare entities
+- **Data Source Badge** — Dynamic 🟢/🟡/🔵 indicator per workspace based on import provenance
+
+## Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- Python 3.10+
+- Docker (PostgreSQL), Node.js 18+, Python 3.10+
 
-### Installation
-1. **Clone the repo**
-   ```bash
-   git clone https://github.com/yourusername/med-union.git
-   cd med-union
-   ```
+### Setup
 
-2. **Start Backend**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   python -m uvicorn main:app --reload
-   ```
+```bash
+# 1. Start PostgreSQL
+docker compose up -d db
 
-3. **Start Frontend**
-   ```bash
-   # Open a new terminal
-   npm install
-   npm run dev
-   ```
+# 2. Backend
+cd backend
+cp .env.example .env
+pip install -r requirements.txt
+alembic upgrade head
 
-4. **Access the Grid**
-   Open `http://localhost:5173` and login with Demo Mode (National Admin).
+# 3. Import data from public FHIR + DHIS2 servers
+python run_import.py
 
----
-*Built for the Future of Public Health.*
+# 4. Start API
+python -m uvicorn main:app --reload
+
+# 5. Frontend (new terminal)
+cd ..
+npm install
+npm run dev
+```
+
+### Seed Data (alternative to live import)
+```bash
+cd backend
+python seed.py  # loads fixture SQL into canonical tables
+```
+
+## Data Sources
+
+| Source | Type | Server | Records |
+|--------|------|--------|---------|
+| FHIR | Hospital | `hapi.fhir.org/baseR5` | 6,909 |
+| DHIS2 | Community | `play.im.dhis2.org/stable-2-40-12` | 8,803 |
+
+Connectors are **import-only** (one-time ETL, not runtime). After import, all queries read from PostgreSQL.
+
+## Tech Stack
+- **Frontend:** React, Vite, TailwindCSS, Leaflet Maps
+- **Backend:** Python FastAPI, SQLAlchemy, Alembic
+- **Database:** PostgreSQL 16
+- **Connectors:** FHIR R5, DHIS2 2.40
+- **AI:** OpenRouter / OpenAI-compatible API
+
+## Project Structure
+```
+backend/
+├── alembic/          # DB migrations (01 → 08)
+├── connectors/       # FHIR + DHIS2 base & concrete connectors
+├── core/             # Config, database, events, security
+├── etl/              # Pipeline: mappers, loaders, contracts
+├── fixtures/         # Seed data SQL
+├── knowledge_graph/  # Entity relationship graph
+├── models/           # SQLAlchemy ORM models
+├── repositories/     # Data access layer
+├── routers/          # FastAPI endpoints
+├── schemas/          # Pydantic response models
+├── services/         # Adapters, KPI engines, import manager
+├── run_import.py     # One-shot FHIR + DHIS2 import
+└── seed.py           # Static fixture loader
+src/
+├── components/       # Badge, charts, layout
+├── pages/            # Hospital, community, copilot, simulation
+└── services/         # API client
+```
+
+## Migrations
+```bash
+cd backend
+alembic upgrade head     # Apply all
+alembic downgrade -1     # Rollback one step
+```
