@@ -1,27 +1,33 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from typing import Annotated
-from auth import Token, get_user, verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, User
 from datetime import timedelta
+from core.security import create_access_token, ROLES
+from schemas.auth import LoginRequest, TokenResponse
 
-router = APIRouter(tags=["auth"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+router = APIRouter(prefix="/auth", tags=["auth"])
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-    # Simplified decoding for demo
-    return get_user("tn_health_sec") # Stub for now to avoid complexity in first pass
+DEMO_USERS = {
+    "admin": {"password": "admin", "role": "admin", "name": "System Administrator"},
+    "hospital": {"password": "hospital", "role": "hospital_manager", "name": "Hospital Manager"},
+    "district": {"password": "district", "role": "district_officer", "name": "District Health Officer"},
+    "analyst": {"password": "analyst", "role": "analyst", "name": "Data Analyst"},
+    "viewer": {"password": "viewer", "role": "viewer", "name": "Read-only Viewer"},
+}
 
-@router.post("/token", response_model=Token)
-async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    user = get_user(form_data.username)
-    if not user or not verify_password(form_data.password, user.hashed_password):
+
+@router.post("/token", response_model=TokenResponse)
+def login(request: LoginRequest):
+    user = DEMO_USERS.get(request.username)
+    if not user or user["password"] != request.password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail="Invalid credentials",
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username, "role": user.role}, expires_delta=access_token_expires
+    token = create_access_token(
+        data={"sub": request.username, "role": user["role"], "name": user["name"]},
+        expires_delta=timedelta(hours=24),
     )
-    return Token(access_token=access_token, token_type="bearer", role=user.role)
+    return TokenResponse(
+        access_token=token,
+        role=user["role"],
+        permissions=ROLES.get(user["role"], []),
+    )

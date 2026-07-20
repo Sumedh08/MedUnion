@@ -1,64 +1,118 @@
-import { NavLink } from 'react-router-dom'
+import { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
-    ThermometerSnowflake,
+    Building2,
+    Map,
+    Activity,
+    Bot,
+    FlaskConical,
+    Settings,
+    LogOut,
+    ChevronLeft,
+    ChevronRight,
+    Users,
     Pill,
-    Droplet,
+    AlertTriangle,
     Ambulance,
-    BellRing,
-    Settings
-} from 'lucide-react'
-import clsx from 'clsx'
+} from 'lucide-react';
+import clsx from 'clsx';
 
-const navItems = [
-    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/dashboard/vaccines', label: 'Vaccine Cold-Chain', icon: ThermometerSnowflake },
-    { to: '/dashboard/medicines', label: 'Essential Medicines', icon: Pill },
-    { to: '/dashboard/blood', label: 'Blood & Organ', icon: Droplet },
-    { to: '/dashboard/ambulance', label: 'Ambulance', icon: Ambulance },
-    { to: '/dashboard/alerts', label: 'Alert Center', icon: BellRing },
-    { to: '/dashboard/settings', label: 'Settings', icon: Settings },
-]
+const hospitalNav = [
+    { to: '/app/hospital', label: 'Overview', icon: LayoutDashboard },
+    { to: '/app/hospital/occupancy', label: 'Bed Occupancy', icon: Activity },
+    { to: '/app/hospital/admissions', label: 'Patient Flow', icon: Users },
+    { to: '/app/hospital/inventory', label: 'Medicine Inventory', icon: Pill },
+];
+
+const communityNav = [
+    { to: '/app/community', label: 'Overview', icon: Map },
+    { to: '/app/community/diseases', label: 'Disease Surveillance', icon: AlertTriangle },
+    { to: '/app/community/vaccinations', label: 'Vaccination Coverage', icon: Activity },
+];
+
+const systemNav = [
+    { to: '/app/copilot', label: 'AI Copilot', icon: Bot },
+    { to: '/app/simulation', label: 'Digital Twin', icon: FlaskConical },
+    { to: '/app/settings', label: 'Settings', icon: Settings },
+];
 
 export default function Sidebar() {
-    return (
-        <aside className="w-64 bg-background-secondary border-r border-gray-800 flex flex-col">
-            <div className="h-16 flex items-center px-6 border-b border-gray-800">
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">
-                    TN Health<span className="font-light text-white ml-2">Grid</span>
-                </h1>
-            </div>
+    const [collapsed, setCollapsed] = useState(false);
+    const navigate = useNavigate();
 
-            <nav className="flex-1 p-4 space-y-2">
-                {navItems.map((item) => (
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        navigate('/');
+    };
+
+    const NavSection = ({ title, items }) => (
+        <div className="mb-4">
+            {!collapsed && (
+                <p className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                    {title}
+                </p>
+            )}
+            <div className="space-y-1">
+                {items.map((item) => (
                     <NavLink
                         key={item.to}
                         to={item.to}
-                        className={({ isActive }) => clsx(
-                            'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
-                            'hover:bg-background-tertiary text-gray-400 hover:text-white',
-                            isActive && 'bg-blue-600/10 text-blue-400 border border-blue-600/20 shadow-sm'
-                        )}
+                        className={({ isActive }) =>
+                            clsx(
+                                'flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all',
+                                'hover:bg-background-tertiary text-gray-400 hover:text-white',
+                                isActive && 'bg-blue-600/15 text-blue-400 border border-blue-600/20',
+                                collapsed && 'justify-center px-2'
+                            )
+                        }
+                        title={collapsed ? item.label : undefined}
                     >
-                        <item.icon className="w-5 h-5" />
-                        <span className="font-medium text-sm">{item.label}</span>
+                        <item.icon className="w-5 h-5 shrink-0" />
+                        {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
                     </NavLink>
                 ))}
+            </div>
+        </div>
+    );
+
+    return (
+        <aside
+            className={clsx(
+                'bg-background-secondary border-r border-gray-800 flex flex-col transition-all duration-300',
+                collapsed ? 'w-16' : 'w-64'
+            )}
+        >
+            <div className="h-16 flex items-center px-4 border-b border-gray-800 justify-between">
+                {!collapsed && (
+                    <h1 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent truncate">
+                        HealthIntel<span className="font-light text-white ml-1">AI</span>
+                    </h1>
+                )}
+                <button
+                    onClick={() => setCollapsed(!collapsed)}
+                    className="p-1.5 text-gray-500 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                    {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+                </button>
+            </div>
+
+            <nav className="flex-1 p-3 overflow-y-auto">
+                <NavSection title="HOSPITAL OPS" items={hospitalNav} />
+                <NavSection title="COMMUNITY" items={communityNav} />
+                <NavSection title="SYSTEM" items={systemNav} />
             </nav>
 
-            <div className="p-4 border-t border-gray-800">
-                <div className="bg-gray-800/50 rounded-lg p-3">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold ring-2 ring-blue-400/30">
-                            TS
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-white">Dr. T.S. Selvavinayagam</p>
-                            <p className="text-xs text-gray-500">Director, Public Health (TN)</p>
-                        </div>
-                    </div>
-                </div>
+            <div className="p-3 border-t border-gray-800">
+                <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                >
+                    <LogOut className="w-5 h-5" />
+                    {!collapsed && <span className="text-sm font-medium">Sign Out</span>}
+                </button>
             </div>
         </aside>
-    )
+    );
 }

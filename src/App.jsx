@@ -1,15 +1,20 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import VaccineColdChain from './pages/VaccineColdChain'
-import EssentialMedicines from './pages/EssentialMedicines'
-import BloodOrganTransport from './pages/BloodOrganTransport'
-import AmbulanceReadiness from './pages/AmbulanceReadiness'
-import AlertCenter from './pages/AlertCenter'
-import Settings from './pages/Settings'
 
-// Simple Protected Route Component
+import HospitalDashboard from './pages/hospital/HospitalDashboard'
+import HospitalOccupancy from './pages/hospital/HospitalOccupancy'
+import HospitalAdmissions from './pages/hospital/HospitalAdmissions'
+import HospitalInventory from './pages/hospital/HospitalInventory'
+
+import CommunityDashboard from './pages/community/CommunityDashboard'
+import DiseaseSurveillance from './pages/community/DiseaseSurveillance'
+import VaccinationCoverage from './pages/community/VaccinationCoverage'
+
+import CopilotPage from './pages/CopilotPage'
+import SimulationPage from './pages/simulation/SimulationPage'
+import SettingsPage from './pages/Settings'
+
 const ProtectedRoute = ({ children }) => {
     const token = localStorage.getItem('token');
     if (!token) return <Navigate to="/" replace />;
@@ -21,15 +26,23 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<Login />} />
-                <Route path="/dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-                    <Route index element={<Dashboard />} />
-                    <Route path="vaccines" element={<VaccineColdChain />} />
-                    <Route path="medicines" element={<EssentialMedicines />} />
-                    <Route path="blood" element={<BloodOrganTransport />} />
-                    <Route path="ambulance" element={<AmbulanceReadiness />} />
-                    <Route path="alerts" element={<AlertCenter />} />
-                    <Route path="settings" element={<Settings />} />
+                <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                    <Route index element={<Navigate to="/app/hospital" replace />} />
+
+                    <Route path="hospital" element={<HospitalDashboard />} />
+                    <Route path="hospital/occupancy" element={<HospitalOccupancy />} />
+                    <Route path="hospital/admissions" element={<HospitalAdmissions />} />
+                    <Route path="hospital/inventory" element={<HospitalInventory />} />
+
+                    <Route path="community" element={<CommunityDashboard />} />
+                    <Route path="community/diseases" element={<DiseaseSurveillance />} />
+                    <Route path="community/vaccinations" element={<VaccinationCoverage />} />
+
+                    <Route path="copilot" element={<CopilotPage />} />
+                    <Route path="simulation" element={<SimulationPage />} />
+                    <Route path="settings" element={<SettingsPage />} />
                 </Route>
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Router>
     )
